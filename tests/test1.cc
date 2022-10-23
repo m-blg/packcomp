@@ -1,5 +1,5 @@
 
-#include "cp_lib/src/io.cc"
+#include "cp_lib/io.cc"
 
 
 using namespace cp;
