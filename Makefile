@@ -4,12 +4,23 @@ SRC_DIR = ./src
 TEST_DIR = ./tests
 
 CC = clang
-CFLAGS = -g -Wall
-LIB = libbincompare.so
+INCS = -Isrc
+LIBS = -lcurl -ljson-c
+CFLAGS = -g -Wall $(INCS)
+LDFLAGS = $(LIBS)
+
+LIB = packcomp.so
+
+SRCS = $(shell find $(SRC) -name "*.cc")
+HS = $(shell find $(SRC) -name "*.cc")
 
 
 
 all: $(BUILD_DIR)/$(LIB)
+
+# .PHONY: deb
+# deb:
+# 	@echo "$(SRCS)"
 
 run: 
 ifdef test
@@ -18,11 +29,11 @@ ifdef test
 	$(BUILD_DIR)/tests/$(test)
 endif
 
-$(BUILD_DIR)/tests/%: $(TEST_DIR)/%.cc $(SRC_DIR)/*.cc $(SRC_DIR)/*.h
+$(BUILD_DIR)/tests/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR)/tests
-	$(CC) $(CFLAGS) $(TEST_DIR)/$(notdir $@).cc -o $@
+	$(CC) $(CFLAGS) $(TEST_DIR)/$(notdir $@).cc -o $@ $(LDFLAGS)
 
-$(BUILD_DIR)/$(LIB): $(SRC_DIR)/*.cc $(SRC_DIR)/*.h
+$(BUILD_DIR)/$(LIB): $(SRCS) $(HS) $(LDFLAGS)
 	$(CC) $(CFLAGS) -fPIC -shared $< -o $@
 
 
