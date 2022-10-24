@@ -11,6 +11,7 @@ using namespace cp;
 #define ALL_PKGSET_ARCHS_URL_FMT "https://rdb.altlinux.org/api/site/all_pkgset_archs?branch=%s"
 #define BRANCH_BINARY_PACKAGES_URL_FMT "https://rdb.altlinux.org/api/export/branch_binary_packages/%s?arch=%s"
 
+int g_packcomp_verbose;
 
 static size_t
 curl_wf_callback(char *data, size_t size, size_t nmemb, void *userp) {
@@ -111,6 +112,11 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
 {
     assert(len(archs) == len(*data_buffers));
 
+    if (g_packcomp_verbose) {
+        println("Downloading branch binary package lists");
+    }
+
+
     dbuff<CURL*[2]> handles; init(&handles, len(*data_buffers));
     CURLM *curlm;
 
@@ -165,14 +171,16 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
         if (result != CURLM_OK) break;
     }
 
-    while ((msg = curl_multi_info_read(curlm, &msgs_left))) {
-        if(msg->msg == CURLMSG_DONE) {
-            for (int i = 0; i < len(archs); i++) {
-                if (msg->easy_handle == handles[i][0]) {
-                    printf("branch: %s, arhc: %s completed with status %d\n", branch1, archs[i], msg->data.result);
-                }
-                if (msg->easy_handle == handles[i][1]) {
-                    printf("branch: %s, arhc: %s completed with status %d\n", branch2, archs[i], msg->data.result);
+    if (g_packcomp_verbose) {
+        while ((msg = curl_multi_info_read(curlm, &msgs_left))) {
+            if(msg->msg == CURLMSG_DONE) {
+                for (int i = 0; i < len(archs); i++) {
+                    if (msg->easy_handle == handles[i][0]) {
+                        printf("branch: %s, arhc: %s completed with status %d\n", branch1, archs[i], msg->data.result);
+                    }
+                    if (msg->easy_handle == handles[i][1]) {
+                        printf("branch: %s, arhc: %s completed with status %d\n", branch2, archs[i], msg->data.result);
+                    }
                 }
             }
         }
@@ -195,7 +203,7 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
 
 dbuff<json_object*>
 package_compare(const char *branch1, const char *branch2, 
-    dbuff<const char*> archs, json_object*(*compare_lmd)(json_object*,json_object*)) 
+    dbuff<const char*> archs, json_object*(*compare_lmd)(json_object*,json_object*,const char*)) 
 {
     dbuff<dstrb[2]> text_buffers; 
     init(&text_buffers, len(archs));
@@ -206,6 +214,7 @@ package_compare(const char *branch1, const char *branch2,
 
     if (!fetch_binary_package_lists_raw_multiarch(branch1, branch2, archs, &text_buffers))
         return {};
+    println(text_buffers[0][0]);
 
     dbuff<json_object*> results; 
     init(&results, len(archs));
@@ -220,7 +229,7 @@ package_compare(const char *branch1, const char *branch2,
             assert(json_object_get_int(length) == json_object_array_length(list[j]));
         }
 
-        results[i] = compare_lmd(list[0], list[1]);
+        results[i] = compare_lmd(list[0], list[1], archs[i]);
     }
 
     return results;
@@ -267,7 +276,7 @@ int version_cmp(str ver1, str ver2) {
 }
 
 json_object*
-compare_sorted(json_object *a1, json_object *a2)  {
+compare_sorted(json_object *a1, json_object *a2, const char* arch)  {
     size_t a1_len = json_object_array_length(a1);
     size_t a2_len = json_object_array_length(a2);
 
@@ -306,6 +315,8 @@ compare_sorted(json_object *a1, json_object *a2)  {
     }
 
     auto o = json_object_new_object();
+
+    json_object_object_add(o, "arch", json_object_new_string(arch));
     json_object_object_add(o, "length1", 
         json_object_new_uint64(json_object_array_length(o1)));
     json_object_object_add(o, "length2",
@@ -323,6 +334,10 @@ compare_sorted(json_object *a1, json_object *a2)  {
 bool
 get_common_archs(const char *branch1, const char *branch2, dbuff<const char*> *archs) 
 {
+    if (g_packcomp_verbose) {
+        println("Requesting arch lists");
+    }
+
     dstrb url1, url2; init(&url1); init(&url2);
     sprint_fmt(&url1, ALL_PKGSET_ARCHS_URL_FMT, branch1);
     sprint_fmt(&url2, ALL_PKGSET_ARCHS_URL_FMT, branch2);

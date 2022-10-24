@@ -1,6 +1,6 @@
 
 #include "packcomp.cc"
-
+int g_packcomp_verbose = 1;
 
 void test1() {
     dstrb data1 = dstrb_from("a");
@@ -35,7 +35,7 @@ void
 test3() {
     auto j1 = json_tokener_parse(test_json1);
     auto j2 = json_tokener_parse(test_json2);
-    auto j3 = compare_sorted(j1, j2);
+    auto j3 = compare_sorted(j1, j2, "");
     println(json_object_to_json_string(j3));
 }
 
