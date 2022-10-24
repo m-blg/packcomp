@@ -3,7 +3,7 @@ BUILD_DIR = ./target
 SRC_DIR = ./src
 TEST_DIR = ./tests
 
-CC = clang
+CC = g++
 INCS = -Isrc
 LIBS = -lcurl -ljson-c
 CFLAGS = -g -Wall $(INCS)
@@ -29,6 +29,12 @@ ifdef test
 	$(BUILD_DIR)/tests/$(test)
 endif
 
+build: 
+ifdef test
+	@echo "test: $(test)"
+	@make $(BUILD_DIR)/tests/$(test)
+endif
+
 $(BUILD_DIR)/tests/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR)/tests
 	$(CC) $(CFLAGS) $(TEST_DIR)/$(notdir $@).cc -o $@ $(LDFLAGS)
@@ -40,4 +46,4 @@ $(BUILD_DIR)/$(LIB): $(SRCS) $(HS) $(LDFLAGS)
 clean:
 	$(RM) -r target
 
-.PHONY: all run clean
+.PHONY: all build run clean

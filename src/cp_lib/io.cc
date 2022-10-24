@@ -62,6 +62,16 @@ void print(list_t list) {
 }
 
 
+template <typename T>
+void print(dbuff<T> self) {
+    print('[');
+    for (auto it = begin(self); it != end(self); it++) {
+        print(*it);
+        print(", ");
+    }
+    print(']');
+}
+
 
 i64 file_size(FILE* file) {
     i64 init_pos = ftell(file);

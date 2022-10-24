@@ -248,7 +248,7 @@ void split(t_arr *out_tokens, typename t_arr::type s, t_delim_buff delim_buff, b
 
 template <typename... Ts>
 void sprint_fmt(dstrb *self, const char* fmt, Ts... args) {
-    size_t max_len = snprintf(null, 0, fmt, args...);
+    size_t max_len = snprintf(null, 0, fmt, args...) + 1; // 1 for \0
     reserve(self, max_len);
     self->len += sprintf(endp(*self), fmt, args...);
 }

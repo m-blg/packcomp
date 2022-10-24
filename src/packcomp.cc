@@ -3,6 +3,7 @@
 
 #include "cp_lib/string.cc"
 #include "cp_lib/io.cc"
+#include "cp_lib/algorithm.cc"
 
 
 using namespace cp;
@@ -21,9 +22,11 @@ curl_wf_callback(char *data, size_t size, size_t nmemb, void *userp) {
     return data_size;
 }
 
+// bool
+// curl_multi_get_request(dbuff<const char*> urls, dbuff<dstrb*> buffers);
+
 bool
-fetch_binary_package_lists_raw(const char *branch1, const char *branch2, 
-    const char *arch, const char *url_fmt, dstrb *data1, dstrb *data2) 
+curl_two_get_requests(const char *url1, const char *url2, dstrb *data1, dstrb *data2) 
 {
     CURL *handles[2];
     CURLM *curlm;
@@ -34,17 +37,11 @@ fetch_binary_package_lists_raw(const char *branch1, const char *branch2,
     handles[0] = curl_easy_init();
     handles[1] = curl_easy_init();
 
-    dstrb url1, url2; init(&url1); init(&url2);
-    sprint_fmt(&url1, url_fmt, branch1, arch);
-    sprint_fmt(&url2, url_fmt, branch2, arch);
-    push(&url1, '\0'); 
-    push(&url2, '\0');
-
-    curl_easy_setopt(handles[0], CURLOPT_URL, url1.buffer);
+    curl_easy_setopt(handles[0], CURLOPT_URL, url1);
     curl_easy_setopt(handles[0], CURLOPT_WRITEFUNCTION, curl_wf_callback);
     curl_easy_setopt(handles[0], CURLOPT_WRITEDATA, (void*)data1);
 
-    curl_easy_setopt(handles[1], CURLOPT_URL, url2.buffer);
+    curl_easy_setopt(handles[1], CURLOPT_URL, url2);
     curl_easy_setopt(handles[1], CURLOPT_WRITEFUNCTION, curl_wf_callback);
     curl_easy_setopt(handles[1], CURLOPT_WRITEDATA, (void*)data2);
 
@@ -71,10 +68,10 @@ fetch_binary_package_lists_raw(const char *branch1, const char *branch2,
     while ((msg = curl_multi_info_read(curlm, &msgs_left))) {
         if(msg->msg == CURLMSG_DONE) {
             if (msg->easy_handle == handles[0]) {
-                printf("branch: %s completed with status %d\n", branch1, msg->data.result);
+                printf("request 1 completed with status %d\n", msg->data.result);
             }
             if (msg->easy_handle == handles[1]) {
-                printf("branch: %s completed with status %d\n", branch2, msg->data.result);
+                printf("request 2 completed with status %d\n", msg->data.result);
             }
         }
     }
@@ -86,16 +83,31 @@ fetch_binary_package_lists_raw(const char *branch1, const char *branch2,
     
     curl_multi_cleanup(curlm);
     
+    return true;
+}
+
+bool
+fetch_binary_package_lists_raw(const char *branch1, const char *branch2, 
+    const char *arch, dstrb *data1, dstrb *data2) 
+{
+    dstrb url1, url2; init(&url1); init(&url2);
+    sprint_fmt(&url1, BRANCH_BINARY_PACKAGES_URL_FMT, branch1, arch);
+    sprint_fmt(&url2, BRANCH_BINARY_PACKAGES_URL_FMT, branch2, arch);
+    // push(&url1, '\0'); 
+    // push(&url2, '\0');
+
+    bool result = curl_two_get_requests(url1.buffer, url2.buffer, data1, data2);
+    
     shut(&url1);
     shut(&url2);
 
-    return true;
+    return result;
 }
 
 
 bool
 fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch2, 
-    dbuff<const char*> archs, const char *url_fmt, dbuff<dstrb[2]> *data_buffers) 
+    dbuff<const char*> archs, dbuff<dstrb[2]> *data_buffers) 
 {
     assert(len(archs) == len(*data_buffers));
 
@@ -112,6 +124,8 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
     if (!curlm) {
         fprintf(stderr, "curl init failed\n");
         curl_easy_cleanup(curlm);
+        shut(&handles);
+        shut(&urls);
         return false;
     }
 
@@ -124,10 +138,10 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
         handles[i][1] = curl_easy_init();
 
         init(&urls[i][0]); init(&urls[i][1]);
-        sprint_fmt(&urls[i][0], url_fmt, branch1, arch);
-        sprint_fmt(&urls[i][1], url_fmt, branch2, arch);
-        push(&urls[i][0], '\0'); 
-        push(&urls[i][1], '\0');
+        sprint_fmt(&urls[i][0], BRANCH_BINARY_PACKAGES_URL_FMT, branch1, arch);
+        sprint_fmt(&urls[i][1], BRANCH_BINARY_PACKAGES_URL_FMT, branch2, arch);
+        // push(&urls[i][0], '\0'); 
+        // push(&urls[i][1], '\0');
 
         curl_easy_setopt(handles[i][0], CURLOPT_URL, urls[i][0].buffer);
         curl_easy_setopt(handles[i][0], CURLOPT_WRITEFUNCTION, curl_wf_callback);
@@ -181,7 +195,7 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
 
 dbuff<json_object*>
 package_compare(const char *branch1, const char *branch2, 
-    dbuff<const char*> archs, const char *url_fmt, json_object*(*compare_lmd)(json_object*,json_object*)) 
+    dbuff<const char*> archs, json_object*(*compare_lmd)(json_object*,json_object*)) 
 {
     dbuff<dstrb[2]> text_buffers; 
     init(&text_buffers, len(archs));
@@ -190,7 +204,7 @@ package_compare(const char *branch1, const char *branch2,
         init(&(*it)[1]);
     }
 
-    if (!fetch_binary_package_lists_raw_multiarch(branch1, branch2, archs, url_fmt, &text_buffers))
+    if (!fetch_binary_package_lists_raw_multiarch(branch1, branch2, archs, &text_buffers))
         return {};
 
     dbuff<json_object*> results; 
@@ -256,10 +270,6 @@ json_object*
 compare_sorted(json_object *a1, json_object *a2)  {
     size_t a1_len = json_object_array_length(a1);
     size_t a2_len = json_object_array_length(a2);
-    // if (a1 > a2) {
-    //     swap(&a1, &a2);
-    //     swap(&a1_len, &a2_len);
-    // }
 
     auto o1 = json_object_new_array();
     auto o2 = json_object_new_array();
@@ -296,17 +306,81 @@ compare_sorted(json_object *a1, json_object *a2)  {
     }
 
     auto o = json_object_new_object();
-    json_object_object_add(o, "branch1 only packages length", 
+    json_object_object_add(o, "length1", 
         json_object_new_uint64(json_object_array_length(o1)));
-    json_object_object_add(o, "branch2 only packages length",
+    json_object_object_add(o, "length2",
         json_object_new_uint64(json_object_array_length(o2)));
-    json_object_object_add(o, "ver1 > ver2 packages length",
+    json_object_object_add(o, "length3",
         json_object_new_uint64(json_object_array_length(o3)));
-    json_object_object_add(o, "branch1 only packages", o1);
-    json_object_object_add(o, "branch2 only packages", o2);
-    json_object_object_add(o, "ver1 > ver2 packages", o3);
+    json_object_object_add(o, "packages1", o1);
+    json_object_object_add(o, "packages2", o2);
+    json_object_object_add(o, "packages3", o3);
 
     return o;
 }
 
 
+bool
+get_common_archs(const char *branch1, const char *branch2, dbuff<const char*> *archs) 
+{
+    dstrb url1, url2; init(&url1); init(&url2);
+    sprint_fmt(&url1, ALL_PKGSET_ARCHS_URL_FMT, branch1);
+    sprint_fmt(&url2, ALL_PKGSET_ARCHS_URL_FMT, branch2);
+    // push(&url1, '\0'); 
+    // push(&url2, '\0');
+
+    dstrb data1, data2;
+    init(&data1); init(&data2);
+    
+    bool result = curl_two_get_requests(url1.buffer, url2.buffer, &data1, &data2);
+
+    if (!result) {
+        shut(&data1); shut(&data2);
+        shut(&url1); shut(&url2);
+        return false;
+    }
+
+
+    auto json1 = json_tokener_parse(data1.buffer);
+    auto l1 = json_object_get_int(json_object_object_get(json1, "length"));
+    auto json1_archs = json_object_object_get(json1, "archs");
+
+    dbuff<const char*> b1; init(&b1, l1);
+    for (int i = 0; i < l1; i++) {
+        b1[i] = json_object_get_string(json_object_object_get(json_object_array_get_idx(json1_archs, i), "arch"));
+    }
+
+    auto json2 = json_tokener_parse(data2.buffer);
+    auto l2 = json_object_get_int(json_object_object_get(json2, "length"));
+    auto json2_archs = json_object_object_get(json2, "archs");
+
+    darr<const char*> b2; init(&b2, l2);
+    for (int i = 0; i < l2; i++) {
+        auto arch = json_object_get_string(json_object_object_get(json_object_array_get_idx(json2_archs, i), "arch"));
+        if (find(begin(b1), end(b1), arch, 
+            [](auto s1, auto s2) {return strcmp(s1, s2) == 0;}) != end(b1)) 
+        {
+            push(&b2, arch);
+        }
+    }
+    shrink_to_fit(&b2);
+    *archs = to_dbuff(b2);
+
+    shut(&data1); shut(&data2);
+    shut(&url1); shut(&url2);
+
+    return true;
+
+}
+
+
+dbuff<json_object*>
+package_compare_all_archs(const char *branch1, const char *branch2) {
+    dbuff<const char*> archs;
+    if (!get_common_archs(branch1, branch2, &archs))
+        return {};
+    
+    auto res = package_compare(branch1, branch2, archs, compare_sorted);
+    shut(&archs);
+    return res;
+}

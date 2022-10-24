@@ -169,14 +169,14 @@ void copy(t1 dst_buff, t2 src_buff) {
     assert(cap(dst_buff) >= cap(src_buff));
     memcpy(beginp(dst_buff), beginp(src_buff), sizeof(typename t2::type) * cap(src_buff));
 }
-template <typename T, template<typename> class t_buff>
-buff_iter<T> begin(t_buff<T> *self) {
-    return {beginp(*self)};
-}
-template <typename T, template<typename> class t_buff>
-buff_iter<T> end(t_buff<T> *self) {
-    return {beginp(self) + cap(self)};
-}
+// template <typename T, template<typename> class t_buff>
+// buff_iter<T> begin(t_buff<T> *self) {
+//     return {beginp(*self)};
+// }
+// template <typename T, template<typename> class t_buff>
+// buff_iter<T> end(t_buff<T> *self) {
+//     return {beginp(self) + cap(self)};
+// }
 
 template <class T, class iterable_t>
 bool is_elem(T item, iterable_t list) {
@@ -435,13 +435,6 @@ T sum_lmd(dbuff<T> buffer, T& (*access_lmd)(T*)) {
 template <typename T>
 void print_fmt(dbuff<T> self, const char* item_fmt) {
     print(self.buffer, self.cap, item_fmt);
-}
-
-template <typename T>
-void print(dbuff<T> self) {
-    for (auto it = begin(&self); it != end(&self); it++) {
-        print(*it);
-    }
 }
 
 

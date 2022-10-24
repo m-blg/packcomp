@@ -286,6 +286,12 @@ void fit_len(darr<T> *self) {
     }
 }
 
+
+template <typename T>
+void shrink_to_fit(darr<T> *self) {
+    resize(&self->_dbuff, self->len);
+}
+
 template <typename T>
 void resize(darr<T> *self, size_t new_len) {
     self->len = new_len;
