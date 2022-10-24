@@ -1,4 +1,7 @@
-VERSION = 1.0
+CLI_VERSION = 1.0.0
+LIB_VERSION = 1.0.0
+
+LIB_VERSION_MAJOR = $(word 1, $(subst ., , $(LIB_VERSION)))
 
 BUILD_DIR = ./target
 SRC_DIR = ./src
@@ -9,11 +12,13 @@ CC = g++
 INCS = -Isrc
 LIBS = -lcurl -ljson-c
 
-CPPFLAGS = -DVERSION=\"${VERSION}\"
+CPPFLAGS = -DVERSION=\"${CLI_VERSION}\"
 CFLAGS = -g -Wall $(INCS)
 LDFLAGS = $(LIBS)
 
-LIB = libpackcomp.so
+LIB_LNAME = libpackcomp.so
+LIB_SONAME = $(LIB_LNAME).$(LIB_VERSION_MAJOR)
+LIB = $(LIB_LNAME).$(LIB_VERSION)
 CLI_BIN = packcomp
 
 CLI_SRC = cli/main.cc
@@ -25,9 +30,9 @@ HS = $(shell find $(SRC) -name "*.cc")
 
 all: $(BUILD_DIR)/$(LIB) $(BUILD_DIR)/$(CLI_BIN)
 
-# .PHONY: deb
-# deb:
-# 	@echo "$(SRCS)"
+.PHONY: deb
+deb:
+	@echo "$(LIB_VERSION_MAJOR)"
 
 cli: $(BUILD_DIR)/$(CLI_BIN)
 	
@@ -56,7 +61,9 @@ $(BUILD_DIR)/tests/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
 
 $(BUILD_DIR)/$(LIB): $(SRCS) $(HS) $(LDFLAGS)
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fpic -shared $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fpic -shared -Wl,-soname,$(LIB_SONAME) $< -o $@
+	ln -s $(LIB) $(BUILD_DIR)/$(LIB_SONAME)
+	ln -s $(LIB_SONAME) $(BUILD_DIR)/$(LIB_LNAME)
 
 install: all
 	mkdir -p $(INSTALL_PREFIX)/bin
@@ -64,10 +71,14 @@ install: all
 	chmod 755 $(INSTALL_PREFIX)/bin/$(CLI_BIN)
 	mkdir -p $(INSTALL_PREFIX)/lib
 	cp -f $(BUILD_DIR)/$(LIB) $(INSTALL_PREFIX)/lib
+	ln -s $(LIB) $(INSTALL_PREFIX)/lib/$(LIB_SONAME)
+	ln -s $(LIB_SONAME) $(INSTALL_PREFIX)/lib/$(LIB_LNAME)
 
 uninstall:
-	rm -f $(INSTALL_PREFIX)/bin/$(CLI_BIN)
-	rm -f $(INSTALL_PREFIX)/lib/$(LIB)
+	rm -f $(INSTALL_PREFIX)/bin/$(CLI_BIN)\
+	      $(INSTALL_PREFIX)/lib/$(LIB_LNAME)\
+	      $(INSTALL_PREFIX)/lib/$(LIB_SONAME)\
+	      $(INSTALL_PREFIX)/lib/$(LIB)
 
 clean:
 	$(RM) -r target
