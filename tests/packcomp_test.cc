@@ -1,6 +1,5 @@
 
 #include "packcomp.cc"
-int g_packcomp_verbose = 1;
 
 void test1() {
     dstrb data1 = dstrb_from("a");
@@ -10,6 +9,7 @@ void test1() {
 
 bool
 test2() {
+    g_packcomp_verbose = 1;
     auto archs = pack("x86_64", "armh");
     auto results = package_compare("p9", "p10", to_dbuff(&archs), compare_sorted);
     
@@ -40,6 +40,7 @@ test3() {
 }
 
 bool test4() {
+    g_packcomp_verbose = 1;
     dbuff<const char*> b;
     auto result = get_common_archs("p9", "p10", &b);
     println(b);
