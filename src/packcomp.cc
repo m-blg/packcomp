@@ -8,7 +8,7 @@
 
 using namespace cp;
 
-#define ALL_PKGSET_ARCHS_URL_FMT "https://rdb.altlinux.org/api/site/all_pkgset_archs?branch=%s"
+#define ALL_PKGSET_ARCHS_WITH_SRC_COUNT "https://rdb.altlinux.org/api/site/all_pkgset_archs_with_src_count?branch=%s"
 #define BRANCH_BINARY_PACKAGES_URL_FMT "https://rdb.altlinux.org/api/export/branch_binary_packages/%s?arch=%s"
 
 int g_packcomp_verbose;
@@ -201,6 +201,12 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
     return true;
 }
 
+
+void
+print_error_response(json_object *jo) {
+    println(json_object_to_json_string(jo));
+}
+
 dbuff<json_object*>
 package_compare(const char *branch1, const char *branch2, 
     dbuff<const char*> archs, json_object*(*compare_lmd)(json_object*,json_object*,const char*)) 
@@ -214,7 +220,6 @@ package_compare(const char *branch1, const char *branch2,
 
     if (!fetch_binary_package_lists_raw_multiarch(branch1, branch2, archs, &text_buffers))
         return {};
-    println(text_buffers[0][0]);
 
     dbuff<json_object*> results; 
     init(&results, len(archs));
@@ -224,7 +229,13 @@ package_compare(const char *branch1, const char *branch2,
         for (int j = 0; j < 2; j++) {
             push(&text_buffers[i][j], '\0');
             auto jo = json_tokener_parse(text_buffers[i][j].buffer);
+
             json_object *length = json_object_object_get(jo, "length");
+            if (length == null) { 
+                print_error_response(jo);
+                return {}; 
+            }
+            
             json_object_object_get_ex(jo, "packages", &list[j]);
             assert(json_object_get_int(length) == json_object_array_length(list[j]));
         }
@@ -339,8 +350,8 @@ get_common_archs(const char *branch1, const char *branch2, dbuff<const char*> *a
     }
 
     dstrb url1, url2; init(&url1); init(&url2);
-    sprint_fmt(&url1, ALL_PKGSET_ARCHS_URL_FMT, branch1);
-    sprint_fmt(&url2, ALL_PKGSET_ARCHS_URL_FMT, branch2);
+    sprint_fmt(&url1, ALL_PKGSET_ARCHS_WITH_SRC_COUNT, branch1);
+    sprint_fmt(&url2, ALL_PKGSET_ARCHS_WITH_SRC_COUNT, branch2);
     // push(&url1, '\0'); 
     // push(&url2, '\0');
 

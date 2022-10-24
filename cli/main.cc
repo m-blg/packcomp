@@ -16,9 +16,10 @@ const char *argp_program_version = "packcomp " VERSION;
 // const char *argp_program_bug_address = "<your@email.address>";
 
 static char doc[] = 
-"packcomp - fetches two branches, finds unique packages in both of them and also packages "
+"packcomp fetches two branches, finds unique packages in both of them and also packages "
 "version of which in the first branch is greater than version of the corresponding packages "
-"in the second branch.";
+"in the second branch. This operation is performed for every specified package architecture "
+"(-a) or for every common architecture if none specified.";
 
 static char args_doc[] = "[BRANCH1] [BRANCH2]...";
 
@@ -127,10 +128,19 @@ int main(int argc, char *argv[])
         archs = common_archs;
     }
 
+    if (!len(archs)) {
+        println("there is nothing to do");
+        return EXIT_SUCCESS;
+    }
+
     if (g_packcomp_verbose)
         print("archs: ", archs, "\n");
 
     auto jsons = package_compare(branch1, branch2, archs, compare_sorted);
+    if (!len(jsons)) {
+        fprintf(stderr, "comparison failed\n");
+        return EXIT_FAILURE;
+    }
 
 
     FILE* ofile = stdout;
@@ -145,5 +155,9 @@ int main(int argc, char *argv[])
 
     if (input_args.out_file != "") {
         fclose(ofile);
+    }
+
+    for (int i=0; i < len(jsons); i++) {
+        json_object_put(jsons[i]);
     }
 }
