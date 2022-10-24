@@ -382,8 +382,8 @@ inline dbuff<T> drop(size_t count, dbuff<T> self) {
 }
 
 template <typename T, size_t t_cap>
-Dynamic_Buffer<T> to_dbuff(sbuff<T, t_cap> self) {
-    return { self.buffer, t_cap };
+Dynamic_Buffer<T> to_dbuff(sbuff<T, t_cap> *self) {
+    return { self->buffer, t_cap };
 }
 
 template <class T>

@@ -14,7 +14,7 @@ const char* test_json =
 
 bool
 test1() {
-    json_object *list =  json_tokener_parse(test_json);
+    json_object *list = json_tokener_parse(test_json);
     if (!list) {
         fprintf(stderr, "parsing failed");
         return false;
