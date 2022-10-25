@@ -59,9 +59,9 @@ $(BUILD_DIR)/tests/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR)/tests
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(TEST_DIR)/$(notdir $@).cc -o $@ $(LDFLAGS)
 
-$(BUILD_DIR)/$(LIB): $(SRCS) $(HS) $(LDFLAGS)
+$(BUILD_DIR)/$(LIB): $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fpic -shared -Wl,-soname,$(LIB_SONAME) $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fpic -shared -Wl,-soname,$(LIB_SONAME) $< -o $@ $(LDFLAGS)
 	ln -s $(LIB) $(BUILD_DIR)/$(LIB_SONAME)
 	ln -s $(LIB_SONAME) $(BUILD_DIR)/$(LIB_LNAME)
 
