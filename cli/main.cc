@@ -13,7 +13,6 @@ using namespace cp;
 #ifdef VERSION
 const char *argp_program_version = "packcomp " VERSION;
 #endif
-// const char *argp_program_bug_address = "<your@email.address>";
 
 static char doc[] = 
 "packcomp fetches two branches, finds unique packages in both of them and also packages "
@@ -21,11 +20,11 @@ static char doc[] =
 "in the second branch. This operation is performed for every specified package architecture "
 "(-a) or for every common architecture if none specified.";
 
-static char args_doc[] = "[BRANCH1] [BRANCH2]...";
+static char args_doc[] = "[BRANCH1] [BRANCH2]";
 
 static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Produce verbose output"},
-    {"arch", 'a', "ARCH", 0, "Specify architecture"},
+    {"archs", 'a', "ARCH1,ARCH2,...", 0, "Specify architecture"},
     {"output", 'o', "FILE", 0, "Output to FILE instead of standard output"},
     {0}};
 
