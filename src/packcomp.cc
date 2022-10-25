@@ -5,11 +5,10 @@
 #include "cp_lib/io.cc"
 #include "cp_lib/algorithm.cc"
 
+#include "packcomp.h"
+
 
 using namespace cp;
-
-#define ALL_PKGSET_ARCHS_WITH_SRC_COUNT "https://rdb.altlinux.org/api/site/all_pkgset_archs_with_src_count?branch=%s"
-#define BRANCH_BINARY_PACKAGES_URL_FMT "https://rdb.altlinux.org/api/export/branch_binary_packages/%s?arch=%s"
 
 int g_packcomp_verbose;
 
