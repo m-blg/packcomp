@@ -37,11 +37,11 @@ For each specified arch packcomp outputs json of the following format:
 ```
 
 where 'length1' is the length of 'packages1', 'length2' ...,\
-arrray 'packages1' constains of all packages of branch1, that are not in branch2,\
-arrray 'packages2' constains of all packages of branch2, that are not in branch1,\
-arrray 'packages3' constains of all packages of branch1, the version of which is greater than the version of the same packages in branch2.
+Array 'packages1' constains all packages of branch1, that are not in branch2,\
+Array 'packages2' constains all packages of branch2, that are not in branch1,\
+Array 'packages3' constains all packages of branch1, the version of which is greater than the version of the same packages in branch2.
 
-Several jsons are wrote sequentially one after another.
+Several jsons are wrote sequentially one after another to the specified output location.
 
 
 
@@ -51,6 +51,8 @@ Several jsons are wrote sequentially one after another.
 ```bash
 make
 sudo make install
+
+packcomp -V # check installation
 ```
 
 ## Removal
@@ -58,6 +60,17 @@ sudo make install
 ```bash
 sudo make uninstall
 ```
+
+## Updating
+
+```bash
+sudo make uninstall
+make clean
+git pull
+make
+sudo make install
+```
+
 
 ## Usage example
 

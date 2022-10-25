@@ -30,9 +30,9 @@ HS = $(shell find $(SRC) -name "*.cc")
 
 all: $(BUILD_DIR)/$(LIB) $(BUILD_DIR)/$(CLI_BIN)
 
-.PHONY: deb
-deb:
-	@echo "$(LIB_VERSION_MAJOR)"
+# .PHONY: deb
+# deb:
+# 	@echo "$(LIB_VERSION_MAJOR)"
 
 cli: $(BUILD_DIR)/$(CLI_BIN)
 	
