@@ -23,19 +23,22 @@ CLI_BIN = packcomp
 
 CLI_SRC = cli/main.cc
 
-SRCS = $(shell find $(SRC) -name "*.cc")
-HS = $(shell find $(SRC) -name "*.cc")
+SRCS = $(shell find $(SRC_DIR) -name "*.cc")
+HS = $(shell find $(SRC_DIR) -name "*.cc")
+SRCS_D1 = $(shell find $(SRC_DIR) -maxdepth 1 -name "*.cc")
 
 
+all: lib cli
 
-all: $(BUILD_DIR)/$(LIB) $(BUILD_DIR)/$(CLI_BIN)
-
-# .PHONY: deb
-# deb:
-# 	@echo "$(LIB_VERSION_MAJOR)"
+.PHONY: deb
+deb:
+	@echo "$(LIB_VERSION_MAJOR)"
+	@echo "$(SRCS)"
+	@echo "$(HS)"
+	@echo "$(SRCS_D1)"
 
 cli: $(BUILD_DIR)/$(CLI_BIN)
-	
+lib: $(BUILD_DIR)/$(LIB)
 
 
 run: 
@@ -61,7 +64,7 @@ $(BUILD_DIR)/tests/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
 
 $(BUILD_DIR)/$(LIB): $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fpic -shared -Wl,-soname,$(LIB_SONAME) $< -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fpic -shared -Wl,-soname,$(LIB_SONAME) $(SRCS_D1) -o $@ $(LDFLAGS)
 	ln -s $(LIB) $(BUILD_DIR)/$(LIB_SONAME)
 	ln -s $(LIB_SONAME) $(BUILD_DIR)/$(LIB_LNAME)
 
