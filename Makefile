@@ -12,8 +12,12 @@ CC = g++
 INCS = -Isrc
 LIBS = -lcurl -ljson-c
 
+DEBFLAGS = -g -Wall
+RELFLAGS = -O2
+MODE_FLAGS = $(RELFLAGS)
+
 CPPFLAGS = -DVERSION=\"${CLI_VERSION}\"
-CFLAGS = -g -Wall $(INCS)
+CFLAGS = $(MODE_FLAGS) $(INCS)
 LDFLAGS = $(LIBS)
 
 LIB_LNAME = libpackcomp.so
@@ -64,7 +68,7 @@ $(BUILD_DIR)/tests/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
 
 $(BUILD_DIR)/$(LIB): $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fpic -shared -Wl,-soname,$(LIB_SONAME) $(SRCS_D1) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared -Wl,-soname,$(LIB_SONAME) $(SRCS_D1) -o $@ $(LDFLAGS)
 	ln -s $(LIB) $(BUILD_DIR)/$(LIB_SONAME)
 	ln -s $(LIB_SONAME) $(BUILD_DIR)/$(LIB_LNAME)
 
@@ -86,4 +90,4 @@ uninstall:
 clean:
 	$(RM) -r target
 
-.PHONY: all cli build run install uninstall clean
+.PHONY: all lib cli build run install uninstall clean
