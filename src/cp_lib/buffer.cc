@@ -372,11 +372,11 @@ inline dbuff<T> tail(dbuff<T> self) {
     return {self.buffer + 1, self.cap - 1};
 }
 template <typename T>
-inline dbuff<T> take(size_t count, dbuff<T> self) {
+inline dbuff<T> take(dbuff<T> self, size_t count) {
     return {self.buffer, min(count, cap(self))};
 }
 template <typename T>
-inline dbuff<T> drop(size_t count, dbuff<T> self) {
+inline dbuff<T> drop(dbuff<T> self, size_t count) {
     size_t shift = min(count, cap(self));
     return {self.buffer + shift, cap(self) - shift};
 }

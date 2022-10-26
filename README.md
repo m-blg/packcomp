@@ -48,7 +48,8 @@ Several jsons are wrote sequentially one after another to the specified output l
 ## Dependencies
 
 libcurl.so.4\
-libjson-c.so.5
+libjson-c.so.5\
+libcriterion.so.3 - for testing
 
 
 ## Installation
@@ -74,6 +75,14 @@ make clean
 git pull
 make
 sudo make install
+```
+
+## Testing
+
+```bash
+make test # to run all tests
+make run test=<test_name_no_ext> # to run specific test
+make run test=rpmveccmp_tests
 ```
 
 

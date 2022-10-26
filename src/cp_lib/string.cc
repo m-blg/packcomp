@@ -53,23 +53,47 @@ void print(dbuff<char> self) {
 }
 
 
+// template <typename T>
+// bool operator==(String<T> f, String<T> s)  {
+//     if (len(f) != len(s)) {
+//         return false;
+//     } else {
+//         auto it_f = begin(f);
+//         auto it_s = begin(s);
+//         for (; it_f != end(f); it_f++, it_s++) {
+//             if (*it_f != *it_s) return false;
+//         }
+//         return true;
+//     }
+// }
+
 template <typename T>
 bool operator==(String<T> f, String<T> s)  {
     if (len(f) != len(s)) {
         return false;
-    } else {
-        auto it_f = begin(f);
-        auto it_s = begin(s);
-        for (; it_f != end(f); it_f++, it_s++) {
-            if (*it_f != *it_s) return false;
-        }
-        return true;
     }
+
+    auto it_f = begin(f);
+    auto it_s = begin(s);
+    for (; it_f != end(f); it_f++, it_s++) {
+        if (*it_f != *it_s) return false;
+    }
+    return true;
 }
 
 template <typename T>
 bool operator!=(String<T> f, String<T> s)  {
     return !(f == s);
+}
+
+int str_cmp(str s1, str s2) {
+    int res = strncmp(s1.buffer, s2.buffer, min(len(s1), len(s2)));
+
+    if (res == 0 && len(s1) != len(s2)) {
+        return (len(s1) > len(s2)) ? 1 : -1;
+    }
+
+    return res;
 }
 
 

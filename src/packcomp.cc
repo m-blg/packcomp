@@ -6,6 +6,7 @@
 #include "cp_lib/algorithm.cc"
 
 #include "packcomp.h"
+#include "rpmvercmp.cc"
 
 
 using namespace cp;
@@ -245,46 +246,6 @@ package_compare(const char *branch1, const char *branch2,
     return results;
 }
 
-u32 parse_uint(str s) {
-    u32 l = (u32)len(s);
-
-    int n = 0;
-    for (int i = 0; i < len(s); i++) {
-        n = n*10 + s[i] - '0';
-    }
-
-    return n;
-}
-
-void parse_version(str version, int *major, int *minor, int *revision, int *build) {
-    darr<str> tokens; init(&tokens);
-    split(&tokens, version, '.');
-
-    *major = (len(tokens) > 0) ? parse_uint(tokens[0]) : -1;
-    *minor = (len(tokens) > 1) ? parse_uint(tokens[1]) : -1;
-    *revision = (len(tokens) > 2) ? parse_uint(tokens[2]) : -1;
-    *build = (len(tokens) > 3) ? parse_uint(tokens[3]) : -1;
-}
-
-int version_cmp(str ver1, str ver2) {
-    int major1, minor1, rev1, build1;
-    int major2, minor2, rev2, build2;
-
-    parse_version(ver1, &major1, &minor1, &rev1, &build1);
-    parse_version(ver2, &major2, &minor2, &rev2, &build2);
-
-    if (major1 < major2) return -1;
-    if (major1 > major2) return 1;
-    if (minor1 < minor2) return -1;
-    if (minor1 > minor2) return 1;
-    if (rev1 < rev2) return -1;
-    if (rev1 > rev2) return 1;
-    if (build1 < build2) return -1;
-    if (build1 > build2) return 1;
-    return 0;
-
-}
-
 json_object*
 compare_sorted(json_object *a1, json_object *a2, const char* arch)  {
     size_t a1_len = json_object_array_length(a1);
@@ -316,7 +277,7 @@ compare_sorted(json_object *a1, json_object *a2, const char* arch)  {
             i2 += 1;
             continue;
         } else {
-            if (version_cmp(str{item1_ver}, str{item2_ver}) > 0) {
+            if (rpmvercmp(str{item1_ver}, str{item2_ver}) > 0) {
                 json_object_array_add(o3, item1);
             }
             i1 += 1;
