@@ -45,6 +45,11 @@ Several jsons are wrote sequentially one after another to the specified output l
 
 
 
+## Dependencies
+
+libcurl.so.4\
+libjson-c.so.5
+
 
 ## Installation
 

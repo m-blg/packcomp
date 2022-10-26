@@ -7,10 +7,13 @@ BUILD_DIR = ./target
 SRC_DIR = ./src
 TEST_DIR = ./tests
 INSTALL_PREFIX = /usr
+INSTALL_PREFIX_BIN = /usr/bin
+INSTALL_PREFIX_LIB = /usr/lib64
 
 CC = g++
 INCS = -Isrc
-LIBS = -lcurl -ljson-c
+LIBS = -l:libcurl.so.4 -l:libjson-c.so.5
+# LIBS = -lcurl -ljson-c
 
 DEBFLAGS = -g -Wall
 RELFLAGS = -O2
@@ -73,19 +76,19 @@ $(BUILD_DIR)/$(LIB): $(SRCS) $(HS)
 	ln -s $(LIB_SONAME) $(BUILD_DIR)/$(LIB_LNAME)
 
 install: all
-	mkdir -p $(INSTALL_PREFIX)/bin
-	cp -f $(BUILD_DIR)/$(CLI_BIN) $(INSTALL_PREFIX)/bin
-	chmod 755 $(INSTALL_PREFIX)/bin/$(CLI_BIN)
-	mkdir -p $(INSTALL_PREFIX)/lib
-	cp -f $(BUILD_DIR)/$(LIB) $(INSTALL_PREFIX)/lib
-	ln -s $(LIB) $(INSTALL_PREFIX)/lib/$(LIB_SONAME)
-	ln -s $(LIB_SONAME) $(INSTALL_PREFIX)/lib/$(LIB_LNAME)
+	mkdir -p $(INSTALL_PREFIX_BIN)
+	cp -f $(BUILD_DIR)/$(CLI_BIN) $(INSTALL_PREFIX_BIN)
+	chmod 755 $(INSTALL_PREFIX_BIN)/$(CLI_BIN)
+	mkdir -p $(INSTALL_PREFIX_LIB)
+	cp -f $(BUILD_DIR)/$(LIB) $(INSTALL_PREFIX_LIB)
+	ln -s $(LIB) $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)
+	ln -s $(LIB_SONAME) $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)
 
 uninstall:
-	rm -f $(INSTALL_PREFIX)/bin/$(CLI_BIN)\
-	      $(INSTALL_PREFIX)/lib/$(LIB_LNAME)\
-	      $(INSTALL_PREFIX)/lib/$(LIB_SONAME)\
-	      $(INSTALL_PREFIX)/lib/$(LIB)
+	rm -f $(INSTALL_PREFIX_BIN)/$(CLI_BIN)\
+	      $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)\
+	      $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)\
+	      $(INSTALL_PREFIX_LIB)/$(LIB)
 
 clean:
 	$(RM) -r target
