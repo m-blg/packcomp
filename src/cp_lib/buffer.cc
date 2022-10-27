@@ -62,7 +62,7 @@ struct Memory_Layout {};
 template <size_t index, typename t_first>
 constexpr auto& get_value(Memory_Layout<t_first> *buffer) {
     if constexpr(index != 0) {
-        assert(("Index out of bounds", false));
+        assert(false && "Index out of bounds");
     }
     return *(t_first*)buffer;
 }

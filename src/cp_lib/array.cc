@@ -170,7 +170,7 @@ struct Dynamic_Array {
     size_t len;
 
     T& operator[](size_t index) {
-        assert(("Index out of range", index < cap));
+        assert(index < cap && "Index out of range");
         return buffer[index];
     }
 

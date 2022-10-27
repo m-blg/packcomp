@@ -1,5 +1,8 @@
 #pragma once
 
+#include "cp_lib/string.cc"
+#include "json-c/json.h"
+
 extern int g_packcomp_verbose;
 
 #define ALL_PKGSET_ARCHS_WITH_SRC_COUNT "https://rdb.altlinux.org/api/site/all_pkgset_archs_with_src_count?branch=%s"

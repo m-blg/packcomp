@@ -34,21 +34,6 @@ struct InputArgs {
     const char *branches[2];
 };
 
-// static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-//     InputArgs *input = (InputArgs*)state->input;
-//     switch (key) {
-//     case 'b':
-//         input->branch = arg;
-//         break;
-//     case ARGP_KEY_ARG:
-//         return 0;
-//     default:
-//         return ARGP_ERR_UNKNOWN;
-//     }   
-//     return 0;
-// }
-
-
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
@@ -109,7 +94,7 @@ int main(int argc, char *argv[])
         split(&tokens, str{input_args.arch}, ',');
 
         darr<const char*> b; init(&b, len(tokens));
-        for (int i = 0; i < len(tokens); i++) {
+        for (size_t i = 0; i < len(tokens); i++) {
             const char *s = to_c_str(tokens[i]);
 
             if (find(begin(common_archs), end(common_archs), s, 
@@ -147,8 +132,7 @@ int main(int argc, char *argv[])
         ofile = fopen(input_args.out_file, "w");
     }
 
-    // fprintf(ofile, "arch: %s\n", json_object_get_string(json_object_object_get(jsons[i], "arch")));
-    for (int i=0; i < len(jsons); i++) {
+    for (size_t i=0; i < len(jsons); i++) {
         fprintf(ofile, "%s\n", json_object_to_json_string(jsons[i]));
     }
 
@@ -156,7 +140,7 @@ int main(int argc, char *argv[])
         fclose(ofile);
     }
 
-    for (int i=0; i < len(jsons); i++) {
+    for (size_t i=0; i < len(jsons); i++) {
         json_object_put(jsons[i]);
     }
 }
