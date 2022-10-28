@@ -3,6 +3,10 @@ LIB_VERSION = 1.1.0
 
 LIB_VERSION_MAJOR = $(word 1, $(subst ., , $(LIB_VERSION)))
 
+ifndef debug
+debug=0 # Default mode
+endif
+
 BUILD_DIR = target
 BUILD_DIR_TESTS = target/tests
 SRC_DIR = src
@@ -20,9 +24,12 @@ TEST_LIBS = -l:libcriterion.so.3
 DEBFLAGS = -g -Wall
 RELFLAGS = -O2
 MODE_FLAGS = $(RELFLAGS)
+ifeq ($(strip $(debug)),1)
+MODE_FLAGS = $(DEBFLAGS)
+endif
 
 CPPFLAGS = -DVERSION=\"${CLI_VERSION}\"
-CFLAGS = $(MODE_FLAGS) $(INCS)
+CFLAGS = $(MODE_FLAGS) $(INCS) -fno-implicit-templates
 LDFLAGS = $(LIBS)
 TEST_LDFLAGS = $(LDFLAGS) $(TEST_LIBS)
 
@@ -43,7 +50,7 @@ TESTS = $(BUILD_DIR_TESTS)/$(basename $(notdir $(TEST_SRCS)))
 
 all: lib cli
 
-.PHONY: deb check
+.PHONY: deb check dump
 deb:
 	@echo "$(LIB_VERSION_MAJOR)"
 	@echo "$(SRCS)"
@@ -56,12 +63,17 @@ check:
 	ldd -r $(BUILD_DIR)/$(CLI_BIN)
 	ldd -r $(BUILD_DIR)/$(LIB)
 
+dump: all
+	objdump -D $(BUILD_DIR)/$(CLI_BIN) > $(BUILD_DIR)/$(CLI_BIN).s
+	objdump -D $(BUILD_DIR)/$(LIB_LNAME) > $(BUILD_DIR)/$(LIB_LNAME).s
+
+
 cli: $(BUILD_DIR)/$(CLI_BIN)
 lib: $(BUILD_DIR)/$(LIB)
 
-test: $(TESTS)
+test: lib $(TESTS)
 	for test in $(TESTS) ; do \
-		./$$test ; \
+		LD_LIBRARY_PATH=$(BUILD_DIR) ./$$test ; \
 	done
 
 
@@ -84,7 +96,7 @@ $(BUILD_DIR)/$(CLI_BIN): $(BUILD_DIR)/$(LIB) $(CLI_SRC)
 
 $(BUILD_DIR_TESTS)/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR_TESTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(TEST_DIR)/$(notdir $@).cc -o $@ $(LDFLAGS) $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(TEST_DIR)/$(notdir $@).cc -o $@ $(LDFLAGS) $(TEST_LDFLAGS) -lpackcomp -L$(BUILD_DIR)
 
 $(BUILD_DIR)/$(LIB): $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR)

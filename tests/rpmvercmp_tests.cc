@@ -1,5 +1,6 @@
 #include "criterion/criterion.h"
 
+#include "packcomp.h"
 #include "rpmvercmp.cc"
 
 Test(parse_uint, test1) {

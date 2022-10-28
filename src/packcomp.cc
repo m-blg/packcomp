@@ -1,12 +1,12 @@
 #include "curl/curl.h"
 #include "json-c/json.h"
 
-#include "cp_lib/string.cc"
-#include "cp_lib/io.cc"
-#include "cp_lib/algorithm.cc"
+#include "instance_cp_lib.cc"
 
+#define PACKCOMP_SOURSE
 #include "packcomp.h"
 #include "rpmvercmp.cc"
+
 
 
 using namespace cp;
