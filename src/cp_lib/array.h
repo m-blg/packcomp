@@ -1,8 +1,8 @@
 #pragma once
 
 #include "mbgldef.h"
-#include "basic.cc"
-#include "buffer.cc"
+#include "basic.h"
+#include "buffer.h"
 #include <cassert>
 #include <string.h>
 
@@ -56,15 +56,6 @@ void arr_remove(T* buffer, size_t *len, T* it) {
         *p = *(p + 1);
     }
 }
-
-
-void arr_rprint(i8* buffer, size_t stride, size_t len, const char* item_fmt) {
-    i8* endp = buffer + stride * len;
-    for (i8* p = buffer; p < endp; p += stride) {
-        printf(item_fmt, *p);
-    }
-}
-
 
 
 template <typename T, size_t t_cap>

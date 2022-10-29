@@ -3,8 +3,8 @@
 #pragma once
 
 #include "mbgldef.h"
-#include "memory.cc"
-#include "basic.cc"
+#include "memory.h"
+#include "basic.h"
 #include <string.h>
 #include <cassert>
 
@@ -630,61 +630,5 @@ auto& _get(size_t index, void* buffer) {
 
     return _get<Gargs...>(index - 1, (u8*)buffer + sizeof(T));
 }
-
-
-
-
-
-
-struct Dynamic_Element_Size_Buffer {
-    dbuff<u8> buffer;
-    size_t stride;
-
-    u8& operator[](size_t index) {
-        return *(buffer.buffer + stride * index);
-    }
-
-    typedef u8 type;
-    typedef buff_iter<u8> iter;
-};
-
-using desbuff = Dynamic_Element_Size_Buffer;
-
-
-void init(desbuff *self, size_t init_cap) { init(&self->buffer, init_cap); }
-void shut(desbuff *self) { shut(&self->buffer); }
-
-
-inline size_t cap(desbuff *buffer) { return cap(buffer->buffer); }
-inline u8* beginp(desbuff *buffer) { return beginp(buffer->buffer); }
-inline u8* endp(desbuff *buffer) { return endp(buffer->buffer); }
-inline buff_iter<u8> begin(desbuff *buffer) { return begin(buffer->buffer); }
-inline buff_iter<u8> end(desbuff *buffer) { return end(buffer->buffer); }
-
-//namespace mdbuffer {
-//template <typename T>
-//T& get_item(T* buffer, size_t dim_count, size_t dim_capacity) {
-
-//}
-
-//}
-
-//template <typename T>
-//struct Dynamic_Multidim_Buffer {
-    //size_t dim_capacity;
-    //size_t dim_count;
-    //T* buffer;
-//};
-
-
-//template <typename T, size_t t_dim_count, size_t t_dim_capacity>
-//struct Static_Multidim_Array {
-    //size_t len;
-    //T buffer[t_dim_capacity * t_dim_count];
-
-    
-//};
-
-
 
 }

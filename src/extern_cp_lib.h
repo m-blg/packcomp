@@ -1,6 +1,5 @@
-#include "cp_lib/algorithm.cc"
-#include "cp_lib/string.cc"
-#include "cp_lib/io.cc"
+#include "cp_lib/algorithm.h"
+#include "cp_lib/io.h"
 // #include "json/json.h"
 
 extern template void cp::split<char, cp::Dynamic_Array<cp::Dynamic_Buffer<char> > >(cp::Dynamic_Array<cp::Dynamic_Buffer<char> >*, cp::Dynamic_Buffer<char>, char, bool);

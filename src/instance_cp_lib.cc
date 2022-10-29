@@ -1,4 +1,4 @@
-#include "cp_lib/algorithm.cc"
+#include "cp_lib/algorithm.h"
 #include "cp_lib/string.cc"
 #include "cp_lib/io.cc"
 // #include "json-c/json.h"
@@ -58,3 +58,12 @@ template void cp::init<char const*>(cp::Dynamic_Buffer<char const*>*, unsigned l
 template void cp::init<void* [2]>(cp::Dynamic_Buffer<void* [2]>*, unsigned long);
 template void cp::init<cp::Dynamic_Array<char> [2]>(cp::Dynamic_Buffer<cp::Dynamic_Array<char> [2]>*, unsigned long);
 template void cp::init<json_object*>(cp::Dynamic_Buffer<json_object*>*, unsigned long);
+
+
+
+// cp::str cp::to_str(cp::Dynamic_Array<char>);
+// cp::str cp::to_str(cp::Static_Array<char, 32ul>*, unsigned long);
+// cp::str cp::to_str(cp::Static_Array<char, 32ul>&);
+// int cp::str_cmp(cp::Dynamic_Buffer<char>, cp::Dynamic_Buffer<char>);
+// const char* cp::to_c_str(cp::Dynamic_Array<char>);
+// const char* cp::to_c_str(cp::Dynamic_Buffer<char>);

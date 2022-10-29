@@ -1,7 +1,7 @@
 #pragma once
 
-#include "basic.cc"
-#include "array.cc"
+#include "basic.h"
+#include "array.h"
 
 
 namespace cp {

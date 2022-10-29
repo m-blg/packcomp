@@ -1,6 +1,5 @@
-#include "cp_lib/string.cc"
-#include "cp_lib/io.cc"
-#include "cp_lib/algorithm.cc"
+#include "cp_lib/io.h"
+#include "cp_lib/algorithm.h"
 
 
 

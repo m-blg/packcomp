@@ -29,9 +29,4 @@ namespace cp {
         *second = temp;
     }
 
-    //inline void dcheck(const char* msg, bool condition) {
-//#ifndef CP_NO_CHECK
-        //assert((msg, condition));
-//#endif
-    //}
 }
