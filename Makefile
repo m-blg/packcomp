@@ -81,12 +81,15 @@ test: lib $(TESTS)
 		LD_LIBRARY_PATH=$(BUILD_DIR) ./$$test ; \
 	done
 
+test-bin: cli
+	LD_LIBRARY_PATH=$(BUILD_DIR) $(BUILD_DIR)/$(CLI_BIN) -va armh p9 p10 -o $(TEST_DIR)/out.txt
+
 
 run: 
 ifdef test
 	@echo "test: $(test)"
 	@make $(BUILD_DIR_TESTS)/$(test)
-	$(BUILD_DIR_TESTS)/$(test)
+	LD_LIBRARY_PATH=$(BUILD_DIR) $(BUILD_DIR_TESTS)/$(test)
 endif
 
 build: 
