@@ -1,8 +1,6 @@
 #include "curl/curl.h"
 #include "json-c/json.h"
 
-#include "instance_cp_lib.cc"
-
 #define PACKCOMP_SOURSE
 #include "packcomp.h"
 #include "rpmvercmp.cc"

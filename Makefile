@@ -63,9 +63,14 @@ check:
 	ldd -r $(BUILD_DIR)/$(CLI_BIN)
 	ldd -r $(BUILD_DIR)/$(LIB)
 
-dump: all
+dump: lib cli
 	objdump -D $(BUILD_DIR)/$(CLI_BIN) > $(BUILD_DIR)/$(CLI_BIN).s
 	objdump -D $(BUILD_DIR)/$(LIB_LNAME) > $(BUILD_DIR)/$(LIB_LNAME).s
+
+symbols: lib cli
+	nm --demangle $(BUILD_DIR)/$(CLI_BIN) > $(BUILD_DIR)/$(CLI_BIN).sym
+	nm --demangle $(BUILD_DIR)/$(LIB_LNAME) > $(BUILD_DIR)/$(LIB_LNAME).sym
+	 
 
 
 cli: $(BUILD_DIR)/$(CLI_BIN)

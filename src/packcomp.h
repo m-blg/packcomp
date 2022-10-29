@@ -3,6 +3,8 @@
 #include "json-c/json.h"
 #ifndef PACKCOMP_SOURSE
 #include "extern_cp_lib.h"
+#else
+#include "instance_cp_lib.cc"
 #endif
 
 extern int g_packcomp_verbose;
