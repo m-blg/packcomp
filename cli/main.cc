@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     }
     // parse archs
     dbuff<const char*> archs;
-    if (input_args.arch != "") {
+    if (strcmp(input_args.arch, "") != 0) {
         darr<str> tokens; init(&tokens);
         split(&tokens, str{input_args.arch}, ',');
 
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
 
     FILE* ofile = stdout;
-    if (input_args.out_file != "") {
+    if (strcmp(input_args.out_file, "") != 0) {
         ofile = fopen(input_args.out_file, "w");
     }
 
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
         fprintf(ofile, "%s\n", json_object_to_json_string(jsons[i]));
     }
 
-    if (input_args.out_file != "") {
+    if (strcmp(input_args.out_file, "") != 0) {
         fclose(ofile);
     }
 

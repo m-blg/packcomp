@@ -1,9 +1,9 @@
 #pragma once
 
+#include "json-c/json.h"
 #ifndef PACKCOMP_SOURSE
 #include "extern_cp_lib.h"
 #endif
-#include "json-c/json.h"
 
 extern int g_packcomp_verbose;
 
