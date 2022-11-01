@@ -2,9 +2,7 @@
 
 #include "json-c/json.h"
 #include "packcomp.h"
-
-
-using namespace cp;
+#include "string.h"
 
 #ifdef VERSION
 const char *argp_program_version = "packcomp " VERSION;
@@ -78,46 +76,67 @@ int main(int argc, char *argv[])
     auto branch1 = input_args.branches[0];
     auto branch2 = input_args.branches[1];
 
-    dbuff<const char*> common_archs;
-    if (!get_common_archs(branch1, branch2, &common_archs)) {
-        fprintf(stderr, "fetching arches failed");
+    const char* *common_archs; size_t common_archs_len;
+    if (!get_common_archs(branch1, branch2, &common_archs, &common_archs_len)) {
+        fprintf(stderr, "fetching archs failed");
         return EXIT_FAILURE;
     }
-    // parse archs
-    dbuff<const char*> archs;
-    if (strcmp(input_args.arch, "") != 0) {
-        darr<str> tokens; init(&tokens);
-        split(&tokens, str{input_args.arch}, ',');
-
-        darr<const char*> b; init(&b, len(tokens));
-        for (size_t i = 0; i < len(tokens); i++) {
-            const char *s = to_c_str(tokens[i]);
-
-            if (find(begin(common_archs), end(common_archs), s, 
-                [](auto s1, auto s2) {return strcmp(s1, s2) == 0;}) != end(common_archs)) 
-            {
-                push(&b, s);
-            } else {
-                fprintf(stderr, "there is no such arch: %s\n", s);
-            }
-        }
-
-        shrink_to_fit(&b);
-        archs = to_dbuff(b);
-    } else {
-        archs = common_archs;
-    }
-
-    if (!len(archs)) {
-        println("there is nothing to do");
+    if (common_archs_len == 0) {
+        printf("no common archs\n");
         return EXIT_SUCCESS;
     }
 
-    if (g_packcomp_verbose)
-        print("archs: ", archs, "\n");
+    // parse archs
+    char* s = NULL; // size_t s_len;
+    const char* *archs = NULL; size_t archs_len=0;
+    if (strcmp(input_args.arch, "") != 0) {
+        size_t s_len = strlen(input_args.arch);
+        char* s = (char*)malloc((s_len+1) * sizeof(char));
+        strncpy(s, input_args.arch, s_len+1);
+        char* context;
 
-    auto jsons = package_compare(branch1, branch2, archs, compare_sorted);
-    if (!len(jsons)) {
+        archs = (const char**)malloc(common_archs_len * sizeof(const char*));
+        for (;;s = NULL) {
+            char* token = strtok_r(s, ",", &context);
+            if (token == NULL)
+                break;
+            
+            bool b = false;
+            for (size_t i = 0; i < common_archs_len; i++) {
+                if (strcmp(token, common_archs[i]) == 0) {
+                    archs[archs_len] = token;
+                    archs_len++;
+                    b = true;
+                } 
+            }
+
+            if (!b) {
+                fprintf(stderr, "there is no such arch: %s\n", s);
+            }
+
+        }
+    } else {
+        archs = common_archs;
+        archs_len = common_archs_len;
+    }
+
+    if (!archs_len) {
+        printf("there is nothing to do\n");
+        return EXIT_SUCCESS;
+    }
+
+    if (g_packcomp_verbose) {
+        printf("archs: ");
+        for (size_t i = 0; i < archs_len; i++) {
+            printf(archs[i]);
+            printf(", ");
+        }
+        printf("\n");
+    }
+
+    size_t jsons_len;
+    auto jsons = package_compare(branch1, branch2, archs, archs_len, &jsons_len, compare_sorted);
+    if (!jsons_len) {
         fprintf(stderr, "comparison failed\n");
         return EXIT_FAILURE;
     }
@@ -128,7 +147,7 @@ int main(int argc, char *argv[])
         ofile = fopen(input_args.out_file, "w");
     }
 
-    for (size_t i=0; i < len(jsons); i++) {
+    for (size_t i=0; i < jsons_len; i++) {
         fprintf(ofile, "%s\n", json_object_to_json_string(jsons[i]));
     }
 
@@ -136,7 +155,12 @@ int main(int argc, char *argv[])
         fclose(ofile);
     }
 
-    for (size_t i=0; i < len(jsons); i++) {
+    for (size_t i=0; i < jsons_len; i++) {
         json_object_put(jsons[i]);
     }
+    
+    if (s != NULL)
+        free(s); 
+    if (archs != NULL)
+        free(archs);
 }

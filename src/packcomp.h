@@ -1,11 +1,6 @@
 #pragma once
 
 #include "json-c/json.h"
-#ifndef PACKCOMP_SOURSE
-#include "cp_lib/extern_cp_lib.h"
-#else
-#include "cp_lib/instance_cp_lib.cc"
-#endif
 
 extern int g_packcomp_verbose;
 
@@ -18,13 +13,13 @@ extern int g_packcomp_verbose;
  *
  * @param url1 url containing get request
  * @param url2 url containing get request
- * @param data1 output string buffer for url1 *Should be preinitiallized*
- * @param data2 output string buffer for url2 *Should be preinitiallized*
+ * @param data1 output string buffer for url1
+ * @param data2 output string buffer for url2
  * 
  * @returns true on success
  */
 bool
-curl_two_get_requests(const char *url1, const char *url2, cp::dstrb *data1, cp::dstrb *data2);
+curl_two_get_requests(const char *url1, const char *url2, char* *data1_ptr, char* *data2_ptr);
 
 
 /**
@@ -32,12 +27,12 @@ curl_two_get_requests(const char *url1, const char *url2, cp::dstrb *data1, cp::
  *
  * @param branch1 name of the first branch
  * @param branch1 name of the second branch
- * @param archs output list of common architectures *Should NOT be preinitiallized*
+ * @param archs output list of common architectures
  * 
  * @returns true on success
  */
 bool
-get_common_archs(const char *branch1, const char *branch2, cp::dbuff<const char*> *archs);
+get_common_archs(const char *branch1, const char *branch2, const char** *archs, size_t *archs_len);
 
 /**
  * Downloads binary package lists for two branches asynchronously
@@ -46,14 +41,14 @@ get_common_archs(const char *branch1, const char *branch2, cp::dbuff<const char*
  * @param branch1 name of the first branch
  * @param branch1 name of the second branch
  * @param arch architecture package lists for which to be downloaded
- * @param data1 output string buffer for branch1 *Should be preinitiallized*
- * @param data2 output string buffer for branch2 *Should be preinitiallized*
+ * @param data1 output string buffer for branch1
+ * @param data2 output string buffer for branch2
  * 
  * @returns true on success
  */
 bool
 fetch_binary_package_lists_raw(const char *branch1, const char *branch2, 
-    const char *arch, cp::dstrb *data1, cp::dstrb *data2);
+    const char *arch, char* *data1_ptr, char* *data2_ptr);
 
 /**
  * Downloads binary package lists for two branches for each specified architecture asynchronously 
@@ -68,14 +63,14 @@ fetch_binary_package_lists_raw(const char *branch1, const char *branch2,
  */
 bool
 fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch2, 
-    cp::dbuff<const char*> archs, cp::dbuff<cp::dstrb[2]> *data_buffers);
+    const char* *archs_ptr, size_t archs_len, char* (**data_buffers_ptr) [2]);
 
-cp::dbuff<json_object*>
+json_object**
 package_compare(const char *branch1, const char *branch2, 
-    cp::dbuff<const char*> archs, json_object*(*compare_lmd)(json_object*,json_object*,const char*));
+    const char* *archs_ptr, size_t archs_len, size_t *out_len, json_object*(*compare_lmd)(json_object*,json_object*,const char*)); 
 
-cp::dbuff<json_object*>
-package_compare_all_archs(const char *branch1, const char *branch2);
+json_object**
+package_compare_all_archs(const char *branch1, const char *branch2, size_t *out_len);
 
 json_object*
 compare_sorted(json_object *a1, json_object *a2, const char* arch);

@@ -105,6 +105,5 @@ sudo make install-dev # to additionally install headers to /usr/include
 ```
 
 ```cpp
-#include "packcomp/packcomp.h" // includes cp_lib headers already
-#include "packcomp/cp_lib/*.h" // use cp_lib submodule separately
+#include "packcomp/packcomp.h"
 ```

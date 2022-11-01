@@ -46,7 +46,7 @@ HS = $(shell find $(SRC_DIR) -name "*.cc")
 # SRCS_D1 = $(shell find $(SRC_DIR) -maxdepth 1 -name "*.cc")
 SRCS_D1 = $(SRC_DIR)/packcomp.cc
 TEST_SRCS = $(shell find $(TEST_DIR) -maxdepth 1 -name "*.cc")
-TESTS = $(BUILD_DIR_TESTS)/$(basename $(notdir $(TEST_SRCS)))
+TESTS = $(addprefix $(BUILD_DIR_TESTS)/, $(basename $(notdir $(TEST_SRCS))))
 
 
 all: lib cli
@@ -83,7 +83,7 @@ test: lib $(TESTS)
 	done
 
 test-bin: cli
-	LD_LIBRARY_PATH=$(BUILD_DIR) $(BUILD_DIR)/$(CLI_BIN) -va armh p9 p10 -o $(TEST_DIR)/out.txt
+	LD_LIBRARY_PATH=$(BUILD_DIR) $(BUILD_DIR)/$(CLI_BIN) -va armh,x86_64 p9 p10 -o $(TEST_DIR)/out.txt
 
 
 run: 
@@ -113,20 +113,25 @@ $(BUILD_DIR)/$(LIB): $(SRCS) $(HS)
 	ln -s $(LIB) $(BUILD_DIR)/$(LIB_SONAME)
 	ln -s $(LIB_SONAME) $(BUILD_DIR)/$(LIB_LNAME)
 
-install: all
-	mkdir -p $(INSTALL_PREFIX_BIN)
-	cp -f $(BUILD_DIR)/$(CLI_BIN) $(INSTALL_PREFIX_BIN)
-	chmod 755 $(INSTALL_PREFIX_BIN)/$(CLI_BIN)
+install-lib: lib
 	mkdir -p $(INSTALL_PREFIX_LIB)
 	cp -f $(BUILD_DIR)/$(LIB) $(INSTALL_PREFIX_LIB)
 	ln -sf $(LIB) $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)
 	ln -sf $(LIB_SONAME) $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)
 
-install-dev: install
+install-cli: cli
+	mkdir -p $(INSTALL_PREFIX_BIN)
+	cp -f $(BUILD_DIR)/$(CLI_BIN) $(INSTALL_PREFIX_BIN)
+	chmod 755 $(INSTALL_PREFIX_BIN)/$(CLI_BIN)
+
+install: install-lib install-cli
+
+install-headers: 
 	mkdir -p $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
-	find $(SRC_DIR) -name '*.h' -exec cp -f --parents {} $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN) \;
-	mv $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/$(SRC_DIR)/* $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/
-	rmdir $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/$(SRC_DIR)
+	cp -f $(SRC_DIR)/packcomp.h $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/
+
+install-dev: install install-headers
+
 
 
 
@@ -140,4 +145,5 @@ uninstall:
 clean:
 	$(RM) -r target
 
-.PHONY: all lib cli build run test test-bin install uninstall clean
+.PHONY: all lib cli build run test test-bin 
+.PHONY: install-lib install-cli install install-headers install-dev uninstall clean

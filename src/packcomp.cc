@@ -1,7 +1,11 @@
 #include "curl/curl.h"
 #include "json-c/json.h"
 
-#define PACKCOMP_SOURSE
+
+// #include "cp_lib/algorithm.h"
+// #include "cp_lib/string.cc"
+// #include "cp_lib/io.cc"
+#include "cp_lib/instance_cp_lib.cc"
 #include "packcomp.h"
 #include "rpmvercmp.cc"
 
@@ -25,8 +29,11 @@ curl_wf_callback(char *data, size_t size, size_t nmemb, void *userp) {
 // curl_multi_get_request(dbuff<const char*> urls, dbuff<dstrb*> buffers);
 
 bool
-curl_two_get_requests(const char *url1, const char *url2, dstrb *data1, dstrb *data2) 
+curl_two_get_requests(const char *url1, const char *url2, char* *data1_ptr, char* *data2_ptr) 
 {
+    dstrb data1, data2; 
+    init(&data1); init(&data2);
+
     CURL *handles[2];
     CURLM *curlm;
 
@@ -38,16 +45,17 @@ curl_two_get_requests(const char *url1, const char *url2, dstrb *data1, dstrb *d
 
     curl_easy_setopt(handles[0], CURLOPT_URL, url1);
     curl_easy_setopt(handles[0], CURLOPT_WRITEFUNCTION, curl_wf_callback);
-    curl_easy_setopt(handles[0], CURLOPT_WRITEDATA, (void*)data1);
+    curl_easy_setopt(handles[0], CURLOPT_WRITEDATA, (void*)&data1);
 
     curl_easy_setopt(handles[1], CURLOPT_URL, url2);
     curl_easy_setopt(handles[1], CURLOPT_WRITEFUNCTION, curl_wf_callback);
-    curl_easy_setopt(handles[1], CURLOPT_WRITEDATA, (void*)data2);
+    curl_easy_setopt(handles[1], CURLOPT_WRITEDATA, (void*)&data2);
 
     curlm = curl_multi_init();
     if (!curlm) {
         fprintf(stderr, "curl init failed\n");
         curl_easy_cleanup(curlm);
+        shut(&data1); shut(&data2);
         return false;
     }
 
@@ -81,13 +89,19 @@ curl_two_get_requests(const char *url1, const char *url2, dstrb *data1, dstrb *d
     curl_easy_cleanup(handles[1]);
     
     curl_multi_cleanup(curlm);
+
+    push(&data1, '\0'); 
+    push(&data2, '\0');
+
+    *data1_ptr = data1.buffer;
+    *data2_ptr = data2.buffer;
     
     return true;
 }
 
 bool
 fetch_binary_package_lists_raw(const char *branch1, const char *branch2, 
-    const char *arch, dstrb *data1, dstrb *data2) 
+    const char *arch, char* *data1_ptr, char* *data2_ptr) 
 {
     dstrb url1, url2; init(&url1); init(&url2);
     sprint_fmt(&url1, BRANCH_BINARY_PACKAGES_URL_FMT, branch1, arch);
@@ -95,7 +109,7 @@ fetch_binary_package_lists_raw(const char *branch1, const char *branch2,
     // push(&url1, '\0'); 
     // push(&url2, '\0');
 
-    bool result = curl_two_get_requests(url1.buffer, url2.buffer, data1, data2);
+    bool result = curl_two_get_requests(url1.buffer, url2.buffer, data1_ptr, data2_ptr);
     
     shut(&url1);
     shut(&url2);
@@ -106,22 +120,23 @@ fetch_binary_package_lists_raw(const char *branch1, const char *branch2,
 
 bool
 fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch2, 
-    dbuff<const char*> archs, dbuff<dstrb[2]> *data_buffers) 
+    const char* *archs_ptr, size_t archs_len, char* (**data_buffers_ptr) [2]) 
 {
-    assert(len(archs) == len(*data_buffers));
+    dbuff<const char*> archs = {archs_ptr, archs_len}; 
+    dbuff<dstrb[2]> data_buffers; init(&data_buffers, archs_len);
 
     if (g_packcomp_verbose) {
         println("Downloading branch binary package lists");
     }
 
 
-    dbuff<CURL*[2]> handles; init(&handles, len(*data_buffers));
+    dbuff<CURL*[2]> handles; init(&handles, len(data_buffers));
     CURLM *curlm;
 
     CURLMsg *msg;
     int msgs_left;
 
-    dbuff<dstrb[2]> urls; init(&urls, len(*data_buffers));
+    dbuff<dstrb[2]> urls; init(&urls, len(data_buffers));
 
 
     curlm = curl_multi_init();
@@ -134,7 +149,7 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
     }
 
 
-    for (size_t i = 0; i < len(*data_buffers); i++) 
+    for (size_t i = 0; i < len(data_buffers); i++) 
     {
         auto arch = archs[i];
 
@@ -147,13 +162,16 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
         // push(&urls[i][0], '\0'); 
         // push(&urls[i][1], '\0');
 
+        init(&data_buffers[i][0]);
+        init(&data_buffers[i][1]);
+
         curl_easy_setopt(handles[i][0], CURLOPT_URL, urls[i][0].buffer);
         curl_easy_setopt(handles[i][0], CURLOPT_WRITEFUNCTION, curl_wf_callback);
-        curl_easy_setopt(handles[i][0], CURLOPT_WRITEDATA, (void*)&(*data_buffers)[i][0]);
+        curl_easy_setopt(handles[i][0], CURLOPT_WRITEDATA, (void*)&(data_buffers)[i][0]);
 
         curl_easy_setopt(handles[i][1], CURLOPT_URL, urls[i][1].buffer);
         curl_easy_setopt(handles[i][1], CURLOPT_WRITEFUNCTION, curl_wf_callback);
-        curl_easy_setopt(handles[i][1], CURLOPT_WRITEDATA, (void*)&(*data_buffers)[i][1]);
+        curl_easy_setopt(handles[i][1], CURLOPT_WRITEDATA, (void*)&(data_buffers)[i][1]);
 
         curl_multi_add_handle(curlm, handles[i][0]);
         curl_multi_add_handle(curlm, handles[i][1]);
@@ -184,7 +202,7 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
         }
     }
     
-    for (size_t i = 0; i < len(*data_buffers); i++) 
+    for (size_t i = 0; i < len(data_buffers); i++) 
     {
         curl_multi_remove_handle(curlm, handles[i][0]);
         curl_multi_remove_handle(curlm, handles[i][1]);
@@ -193,6 +211,11 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
 
         shut(&urls[i][0]);
         shut(&urls[i][1]);
+
+        push(&data_buffers[i][0], '\0');       
+        push(&data_buffers[i][1], '\0');
+        (*data_buffers_ptr)[i][0] = data_buffers[i][0].buffer;
+        (*data_buffers_ptr)[i][1] = data_buffers[i][1].buffer;
     }
     curl_multi_cleanup(curlm);
 
@@ -205,19 +228,15 @@ print_error_response(json_object *jo) {
     println(json_object_to_json_string(jo));
 }
 
-dbuff<json_object*>
+json_object**
 package_compare(const char *branch1, const char *branch2, 
-    dbuff<const char*> archs, json_object*(*compare_lmd)(json_object*,json_object*,const char*)) 
+    const char* *archs_ptr, size_t archs_len, size_t *out_len, json_object*(*compare_lmd)(json_object*,json_object*,const char*)) 
 {
-    dbuff<dstrb[2]> text_buffers; 
-    init(&text_buffers, len(archs));
-    for (auto it = begin(text_buffers); it != end(text_buffers); it++) {
-        init(&(*it)[0]);
-        init(&(*it)[1]);
-    }
+    dbuff<const char*> archs = {archs_ptr, archs_len};
+    char* (*text_buffers)[2] = (char*(*)[2])malloc(archs_len * sizeof(char*[2])); 
 
-    if (!fetch_binary_package_lists_raw_multiarch(branch1, branch2, archs, &text_buffers))
-        return {};
+    if (!fetch_binary_package_lists_raw_multiarch(branch1, branch2, archs_ptr, archs_len, &text_buffers))
+        return NULL;
 
     dbuff<json_object*> results; 
     init(&results, len(archs));
@@ -225,8 +244,7 @@ package_compare(const char *branch1, const char *branch2,
 
         json_object *list[2];
         for (int j = 0; j < 2; j++) {
-            push(&text_buffers[i][j], '\0');
-            auto jo = json_tokener_parse(text_buffers[i][j].buffer);
+            auto jo = json_tokener_parse(text_buffers[i][j]);
 
             json_object *length = json_object_object_get(jo, "length");
             if (length == null) { 
@@ -241,7 +259,10 @@ package_compare(const char *branch1, const char *branch2,
         results[i] = compare_lmd(list[0], list[1], archs[i]);
     }
 
-    return results;
+    free(text_buffers);
+
+    *out_len = results.cap;
+    return results.buffer;
 }
 
 json_object*
@@ -301,7 +322,7 @@ compare_sorted(json_object *a1, json_object *a2, const char* arch)  {
 
 
 bool
-get_common_archs(const char *branch1, const char *branch2, dbuff<const char*> *archs) 
+get_common_archs(const char *branch1, const char *branch2, const char** *archs, size_t *archs_len) 
 {
     if (g_packcomp_verbose) {
         println("Requesting arch lists");
@@ -313,19 +334,17 @@ get_common_archs(const char *branch1, const char *branch2, dbuff<const char*> *a
     // push(&url1, '\0'); 
     // push(&url2, '\0');
 
-    dstrb data1, data2;
-    init(&data1); init(&data2);
+    char *data1, *data2;
     
     bool result = curl_two_get_requests(url1.buffer, url2.buffer, &data1, &data2);
 
     if (!result) {
-        shut(&data1); shut(&data2);
         shut(&url1); shut(&url2);
         return false;
     }
 
 
-    auto json1 = json_tokener_parse(data1.buffer);
+    auto json1 = json_tokener_parse(data1);
     auto l1 = json_object_get_int(json_object_object_get(json1, "length"));
     auto json1_archs = json_object_object_get(json1, "archs");
 
@@ -334,7 +353,7 @@ get_common_archs(const char *branch1, const char *branch2, dbuff<const char*> *a
         b1[i] = json_object_get_string(json_object_object_get(json_object_array_get_idx(json1_archs, i), "arch"));
     }
 
-    auto json2 = json_tokener_parse(data2.buffer);
+    auto json2 = json_tokener_parse(data2);
     auto l2 = json_object_get_int(json_object_object_get(json2, "length"));
     auto json2_archs = json_object_object_get(json2, "archs");
 
@@ -348,9 +367,9 @@ get_common_archs(const char *branch1, const char *branch2, dbuff<const char*> *a
         }
     }
     shrink_to_fit(&b2);
-    *archs = to_dbuff(b2);
+    *archs = b2.buffer;
+    *archs_len = b2.len;
 
-    shut(&data1); shut(&data2);
     shut(&url1); shut(&url2);
 
     return true;
@@ -358,13 +377,14 @@ get_common_archs(const char *branch1, const char *branch2, dbuff<const char*> *a
 }
 
 
-dbuff<json_object*>
-package_compare_all_archs(const char *branch1, const char *branch2) {
+json_object**
+package_compare_all_archs(const char *branch1, const char *branch2, size_t *out_len) {
     dbuff<const char*> archs;
-    if (!get_common_archs(branch1, branch2, &archs))
+    if (!get_common_archs(branch1, branch2, &archs.buffer, &archs.cap))
         return {};
     
-    auto res = package_compare(branch1, branch2, archs, compare_sorted);
+    auto res = package_compare(branch1, branch2, archs.buffer, archs.cap, out_len, compare_sorted);
     shut(&archs);
+    
     return res;
 }
