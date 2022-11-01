@@ -14,6 +14,7 @@ TEST_DIR = tests
 INSTALL_PREFIX = /usr
 INSTALL_PREFIX_BIN = /usr/bin
 INSTALL_PREFIX_LIB = /usr/lib64
+INSTALL_PREFIX_INCLUDE = /usr/include
 
 CC = g++
 INCS = -Isrc
@@ -118,16 +119,25 @@ install: all
 	chmod 755 $(INSTALL_PREFIX_BIN)/$(CLI_BIN)
 	mkdir -p $(INSTALL_PREFIX_LIB)
 	cp -f $(BUILD_DIR)/$(LIB) $(INSTALL_PREFIX_LIB)
-	ln -s $(LIB) $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)
-	ln -s $(LIB_SONAME) $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)
+	ln -sf $(LIB) $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)
+	ln -sf $(LIB_SONAME) $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)
+
+install-dev: install
+	mkdir -p $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
+	find $(SRC_DIR) -name '*.h' -exec cp -f --parents {} $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN) \;
+	mv $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/$(SRC_DIR)/* $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/
+	rmdir $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/$(SRC_DIR)
+
+
 
 uninstall:
 	rm -f $(INSTALL_PREFIX_BIN)/$(CLI_BIN)\
 	      $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)\
 	      $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)\
 	      $(INSTALL_PREFIX_LIB)/$(LIB)
+	rm -rf $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
 
 clean:
 	$(RM) -r target
 
-.PHONY: all lib cli build run test install uninstall clean
+.PHONY: all lib cli build run test test-bin install uninstall clean

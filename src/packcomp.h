@@ -2,9 +2,9 @@
 
 #include "json-c/json.h"
 #ifndef PACKCOMP_SOURSE
-#include "extern_cp_lib.h"
+#include "cp_lib/extern_cp_lib.h"
 #else
-#include "instance_cp_lib.cc"
+#include "cp_lib/instance_cp_lib.cc"
 #endif
 
 extern int g_packcomp_verbose;

@@ -315,7 +315,7 @@ struct Dynamic_Buffer {
     size_t cap; // in items
 
     T& operator[](size_t index) {
-        assert(("Index out of range", index < cap));
+        assert(index < cap && "Index out of range");
         return buffer[index];
     }
 

@@ -18,7 +18,7 @@ struct Dynamic_Buffer<char> {
     Dynamic_Buffer(const char* c_str);
 
     char& operator[](size_t index) {
-        assert(("Index out of range", index < cap));
+        assert(index < cap && "Index out of range");
         return buffer[index];
     }
 

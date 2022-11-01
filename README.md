@@ -83,6 +83,8 @@ sudo make install
 make test # to run all tests
 make run test=<test_name_no_ext> # to run specific test
 make run test=rpmveccmp_tests
+
+make test-bin # quick cli utility test
 ```
 
 
@@ -91,4 +93,18 @@ make run test=rpmveccmp_tests
 ```bash
 packcomp p9 p10 -va x86_64,armh -o tests/out.txt
 packcomp --help # for more options
+```
+
+
+## Frontend writing guidelines
+
+
+```bash
+make
+sudo make install-dev # to additionally install headers to /usr/include
+```
+
+```cpp
+#include "packcomp/packcomp.h" // includes cp_lib headers already
+#include "packcomp/cp_lib/*.h" // use cp_lib submodule separately
 ```

@@ -134,7 +134,7 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
     }
 
 
-    for (int i = 0; i < len(*data_buffers); i++) 
+    for (size_t i = 0; i < len(*data_buffers); i++) 
     {
         auto arch = archs[i];
 
@@ -172,7 +172,7 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
     if (g_packcomp_verbose) {
         while ((msg = curl_multi_info_read(curlm, &msgs_left))) {
             if(msg->msg == CURLMSG_DONE) {
-                for (int i = 0; i < len(archs); i++) {
+                for (size_t i = 0; i < len(archs); i++) {
                     if (msg->easy_handle == handles[i][0]) {
                         printf("branch: %s, arhc: %s completed with status %d\n", branch1, archs[i], msg->data.result);
                     }
@@ -184,7 +184,7 @@ fetch_binary_package_lists_raw_multiarch(const char *branch1, const char *branch
         }
     }
     
-    for (int i = 0; i < len(*data_buffers); i++) 
+    for (size_t i = 0; i < len(*data_buffers); i++) 
     {
         curl_multi_remove_handle(curlm, handles[i][0]);
         curl_multi_remove_handle(curlm, handles[i][1]);
@@ -221,7 +221,7 @@ package_compare(const char *branch1, const char *branch2,
 
     dbuff<json_object*> results; 
     init(&results, len(archs));
-    for (int i = 0; i < len(archs); i++) {
+    for (size_t i = 0; i < len(archs); i++) {
 
         json_object *list[2];
         for (int j = 0; j < 2; j++) {
