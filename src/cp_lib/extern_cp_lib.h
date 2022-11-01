@@ -1,5 +1,5 @@
-#include "cp_lib/algorithm.h"
-#include "cp_lib/io.h"
+#include "algorithm.h"
+#include "io.h"
 // #include "json/json.h"
 
 extern template /*W*/ void cp::sprint_fmt<char const*>(cp::Dynamic_Array<char>*, char const*, char const*);

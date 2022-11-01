@@ -1,6 +1,6 @@
-#include "cp_lib/algorithm.h"
-#include "cp_lib/string.cc"
-#include "cp_lib/io.cc"
+#include "algorithm.h"
+#include "string.cc"
+#include "io.cc"
 // #include "json-c/json.h"
 
 
