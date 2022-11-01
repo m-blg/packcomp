@@ -370,6 +370,7 @@ get_common_archs(const char *branch1, const char *branch2, const char** *archs, 
     *archs = b2.buffer;
     *archs_len = b2.len;
 
+    shut(&b1);
     shut(&url1); shut(&url2);
 
     return true;
