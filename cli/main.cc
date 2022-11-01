@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
                     archs[archs_len] = token;
                     archs_len++;
                     b = true;
+                    break;
                 } 
             }
 
