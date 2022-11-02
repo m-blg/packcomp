@@ -37,9 +37,7 @@ TEST_LDFLAGS = $(LDFLAGS) $(TEST_LIBS)
 LIB_LNAME = libpackcomp.so
 LIB_SONAME = $(LIB_LNAME).$(LIB_VERSION_MAJOR)
 LIB = $(LIB_LNAME).$(LIB_VERSION)
-CLI_BIN = packcomp
 
-CLI_SRC = cli/main.cc
 
 SRCS = $(shell find $(SRC_DIR) -name "*.cc")
 HS = $(shell find $(SRC_DIR) -name "*.cc")
@@ -74,7 +72,6 @@ symbols: lib cli
 	 
 
 
-cli: $(BUILD_DIR)/$(CLI_BIN)
 lib: $(BUILD_DIR)/$(LIB)
 
 test: lib $(TESTS)
@@ -99,18 +96,12 @@ ifdef test
 	@make $(BUILD_DIR_TESTS)/$(test)
 endif
 
-install-lib: lib
+install:
 	mkdir -p $(INSTALL_PREFIX_LIB)
 	cp -f $(BUILD_DIR)/$(LIB) $(INSTALL_PREFIX_LIB)
 	ln -sf $(LIB) $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)
 	ln -sf $(LIB_SONAME) $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)
 
-install-cli: cli
-	mkdir -p $(INSTALL_PREFIX_BIN)
-	cp -f $(BUILD_DIR)/$(CLI_BIN) $(INSTALL_PREFIX_BIN)
-	chmod 755 $(INSTALL_PREFIX_BIN)/$(CLI_BIN)
-
-install: install-lib
 
 install-headers: 
 	mkdir -p $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
@@ -124,21 +115,14 @@ uninstall-lib:
 	      $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)\
 	      $(INSTALL_PREFIX_LIB)/$(LIB)
 
-uninstall-cli:
-	rm -f $(INSTALL_PREFIX_BIN)/$(CLI_BIN)
-
 uninstall-headers:
-	rm -rf $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
+	rm -rf $(INSTALL_PREFIX_INCLUDE)/packcomp
 
-uninstall-all: uninstall-lib uninstall-cli uninstall-headers
+uninstall: uninstall-lib uninstall-headers
 
 clean:
 	$(RM) -r target
 
-
-$(BUILD_DIR)/$(CLI_BIN): $(CLI_SRC)
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(CLI_SRC) -o $@ $(LDFLAGS) -lpackcomp
 
 $(BUILD_DIR_TESTS)/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
 	@mkdir -p $(BUILD_DIR_TESTS)
