@@ -1,4 +1,3 @@
-CLI_VERSION = 1.0.0
 LIB_VERSION = 1.1.0
 
 LIB_VERSION_MAJOR = $(word 1, $(subst ., , $(LIB_VERSION)))
@@ -29,7 +28,6 @@ ifeq ($(strip $(debug)),1)
 MODE_FLAGS = $(DEBFLAGS)
 endif
 
-CPPFLAGS = -DVERSION=\"${CLI_VERSION}\"
 CFLAGS = $(MODE_FLAGS) $(INCS) -fno-implicit-templates
 LDFLAGS = $(LIBS)
 TEST_LDFLAGS = $(LDFLAGS) $(TEST_LIBS)
@@ -59,15 +57,12 @@ deb:
 	@echo "$(TESTS)"
 
 check:
-	ldd -r $(BUILD_DIR)/$(CLI_BIN)
 	ldd -r $(BUILD_DIR)/$(LIB)
 
-dump: lib cli
-	objdump -D --demangle $(BUILD_DIR)/$(CLI_BIN) > $(BUILD_DIR)/$(CLI_BIN).s
+dump: lib
 	objdump -D --demangle $(BUILD_DIR)/$(LIB_LNAME) > $(BUILD_DIR)/$(LIB_LNAME).s
 
-symbols: lib cli
-	nm --demangle $(BUILD_DIR)/$(CLI_BIN) > $(BUILD_DIR)/$(CLI_BIN).sym
+symbols: lib
 	nm --demangle $(BUILD_DIR)/$(LIB_LNAME) > $(BUILD_DIR)/$(LIB_LNAME).sym
 	 
 
@@ -78,9 +73,6 @@ test: lib $(TESTS)
 	for test in $(TESTS) ; do \
 		LD_LIBRARY_PATH=$(BUILD_DIR) ./$$test ; \
 	done
-
-test-bin: cli
-	LD_LIBRARY_PATH=$(BUILD_DIR) $(BUILD_DIR)/$(CLI_BIN) -va armh,x86_64 p9 p10 -o $(TEST_DIR)/out.txt
 
 
 run: 
