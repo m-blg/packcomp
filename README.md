@@ -35,7 +35,6 @@ git pull
 # See installation paragraph 
 make
 sudo make install
-sudo make install-dev # instead for additionally installing headers
 ```
 
 ## Testing

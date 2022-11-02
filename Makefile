@@ -96,7 +96,7 @@ ifdef test
 	@make $(BUILD_DIR_TESTS)/$(test)
 endif
 
-install:
+install-lib:
 	mkdir -p $(INSTALL_PREFIX_LIB)
 	cp -f $(BUILD_DIR)/$(LIB) $(INSTALL_PREFIX_LIB)
 	ln -sf $(LIB) $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)
@@ -107,7 +107,7 @@ install-headers:
 	mkdir -p $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
 	cp -f $(SRC_DIR)/packcomp.h $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/
 
-install-dev: install install-headers
+install: install-lib install-headers
 
 
 uninstall-lib:
