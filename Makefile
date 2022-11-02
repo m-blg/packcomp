@@ -104,8 +104,8 @@ install-lib:
 
 
 install-headers: 
-	mkdir -p $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
-	cp -f $(SRC_DIR)/packcomp.h $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)/
+	mkdir -p $(INSTALL_PREFIX_INCLUDE)/packcomp
+	cp -f $(SRC_DIR)/packcomp.h $(INSTALL_PREFIX_INCLUDE)/packcomp/
 
 install: install-lib install-headers
 
