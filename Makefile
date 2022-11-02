@@ -49,7 +49,7 @@ TEST_SRCS = $(shell find $(TEST_DIR) -maxdepth 1 -name "*.cc")
 TESTS = $(addprefix $(BUILD_DIR_TESTS)/, $(basename $(notdir $(TEST_SRCS))))
 
 
-all: lib cli
+all: lib
 
 .PHONY: deb check dump
 deb:
@@ -99,20 +99,6 @@ ifdef test
 	@make $(BUILD_DIR_TESTS)/$(test)
 endif
 
-$(BUILD_DIR)/$(CLI_BIN): $(BUILD_DIR)/$(LIB) $(CLI_SRC)
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(CLI_SRC) -o $@ $(LDFLAGS) -lpackcomp -L$(BUILD_DIR)
-
-$(BUILD_DIR_TESTS)/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
-	@mkdir -p $(BUILD_DIR_TESTS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(TEST_DIR)/$(notdir $@).cc -o $@ $(LDFLAGS) $(TEST_LDFLAGS) -lpackcomp -L$(BUILD_DIR)
-
-$(BUILD_DIR)/$(LIB): $(SRCS) $(HS)
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared -Wl,-soname,$(LIB_SONAME) $(SRCS_D1) -o $@ $(LDFLAGS)
-	ln -s $(LIB) $(BUILD_DIR)/$(LIB_SONAME)
-	ln -s $(LIB_SONAME) $(BUILD_DIR)/$(LIB_LNAME)
-
 install-lib: lib
 	mkdir -p $(INSTALL_PREFIX_LIB)
 	cp -f $(BUILD_DIR)/$(LIB) $(INSTALL_PREFIX_LIB)
@@ -124,7 +110,7 @@ install-cli: cli
 	cp -f $(BUILD_DIR)/$(CLI_BIN) $(INSTALL_PREFIX_BIN)
 	chmod 755 $(INSTALL_PREFIX_BIN)/$(CLI_BIN)
 
-install: install-lib install-cli
+install: install-lib
 
 install-headers: 
 	mkdir -p $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
@@ -133,17 +119,37 @@ install-headers:
 install-dev: install install-headers
 
 
-
-
-uninstall:
-	rm -f $(INSTALL_PREFIX_BIN)/$(CLI_BIN)\
-	      $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)\
+uninstall-lib:
+	rm -f $(INSTALL_PREFIX_LIB)/$(LIB_LNAME)\
 	      $(INSTALL_PREFIX_LIB)/$(LIB_SONAME)\
 	      $(INSTALL_PREFIX_LIB)/$(LIB)
+
+uninstall-cli:
+	rm -f $(INSTALL_PREFIX_BIN)/$(CLI_BIN)
+
+uninstall-headers:
 	rm -rf $(INSTALL_PREFIX_INCLUDE)/$(CLI_BIN)
+
+uninstall-all: uninstall-lib uninstall-cli uninstall-headers
 
 clean:
 	$(RM) -r target
+
+
+$(BUILD_DIR)/$(CLI_BIN): $(CLI_SRC)
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(CLI_SRC) -o $@ $(LDFLAGS) -lpackcomp
+
+$(BUILD_DIR_TESTS)/%: $(TEST_DIR)/%.cc $(SRCS) $(HS)
+	@mkdir -p $(BUILD_DIR_TESTS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(TEST_DIR)/$(notdir $@).cc -o $@ $(LDFLAGS) $(TEST_LDFLAGS) -lpackcomp
+
+$(BUILD_DIR)/$(LIB): $(SRCS) $(HS)
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared -Wl,-soname,$(LIB_SONAME) $(SRCS_D1) -o $@ $(LDFLAGS)
+	ln -s $(LIB) $(BUILD_DIR)/$(LIB_SONAME)
+	ln -s $(LIB_SONAME) $(BUILD_DIR)/$(LIB_LNAME)
+
 
 .PHONY: all lib cli build run test test-bin 
 .PHONY: install-lib install-cli install install-headers install-dev uninstall clean

@@ -1,7 +1,6 @@
 #include "argp.h"
 
-#include "json-c/json.h"
-#include "packcomp.h"
+#include "packcomp/packcomp.h"
 #include "string.h"
 
 #ifdef VERSION

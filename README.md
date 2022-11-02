@@ -54,9 +54,18 @@ libcriterion.so.3 - for testing
 
 ## Installation
 
+To install shared library only:
 ```bash
 make
 sudo make install
+```
+
+To install cli utility;
+```bash
+make
+sudo make install-dev
+make cli
+sudo make install-cli
 
 packcomp -V # check installation
 ```
@@ -64,15 +73,17 @@ packcomp -V # check installation
 ## Removal
 
 ```bash
-sudo make uninstall
+sudo make uninstall-all
 ```
 
 ## Updating
 
 ```bash
-sudo make uninstall
+sudo make uninstall-all
 make clean
 git pull
+
+# See installation paragraph 
 make
 sudo make install
 ```
