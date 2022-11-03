@@ -2,7 +2,7 @@
 #include "criterion/criterion.h"
 #include "cp_lib/io.cc"
 
-#include "json-c/json.h"
+#include <json-c/json.h>
 
 const char* test_json = 
 "["

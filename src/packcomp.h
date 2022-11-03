@@ -1,6 +1,6 @@
 #pragma once
 
-#include "json-c/json.h"
+#include <json-c/json.h>
 
 extern int g_packcomp_verbose;
 

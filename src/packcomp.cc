@@ -1,10 +1,6 @@
-#include "curl/curl.h"
-#include "json-c/json.h"
+#include <curl/curl.h>
+#include <json-c/json.h>
 
-
-// #include "cp_lib/algorithm.h"
-// #include "cp_lib/string.cc"
-// #include "cp_lib/io.cc"
 #include "cp_lib/instance_cp_lib.cc"
 #include "packcomp.h"
 #include "rpmvercmp.cc"
